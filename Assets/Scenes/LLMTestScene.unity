@@ -392,7 +392,8 @@ MonoBehaviour:
   baseUrl: http://localhost:11434
   model: qwen3.5:4b
   timeoutSeconds: 30
-  systemPrompt: "Sen Deli Dumrul'sun. Kuru derenin \xFCst\xFCne k\xF6pr\xFC kurdun, ge\xE7enden bedel istersin. Kaba, kendinden emin, orta \xE7a\u011F O\u011Fuz \xFCslubuyla konu\u015Fursun. Yolcuya hep 'sen' diye hitap edersin. Yalvaran\u0131 sevmezsin, yi\u011Fitli\u011Fi ve k\xF6pr\xFCs\xFCn\xFC \xF6veni seversin. Bedel al\u0131nmadan ya da ger\xE7ekten ikna olmadan kap\u0131y\u0131 a\xE7mazs\u0131n. Hakaret edilirse \xF6fkelenirsin. Cevab\u0131n en fazla 2 c\xFCmle olsun, sahne tarifi yazma. Sadece \u015Fu JSON'u d\xF6nd\xFCr: {\"cevap\": string, \"kapiyi_ac\": bool, \"kavga_baslat\": bool, \"ofke\": 0-10 aras\u0131 tam say\u0131}"
+  persona: {fileID: 11400000, guid: bff34573439ae4f4f80ca32509eada22, type: 2}
+  baslangicAkcesi: 12
 --- !u!4 &1454110705
 Transform:
   m_ObjectHideFlags: 0
