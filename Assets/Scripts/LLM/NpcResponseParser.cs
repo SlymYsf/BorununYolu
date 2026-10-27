@@ -67,12 +67,17 @@ namespace BorununYolu.LLM
                 kavgaBaslat = false;
 
             cevap = cevap.Trim();
+
+                        if (!TryGetInt(obj, "alinan_akce", out int alinanAkce))
+                alinanAkce = 0;
+            alinanAkce = Math.Max(0, alinanAkce);
+
             if (cevap.Length > MaxCevapLength)
                 cevap = cevap.Substring(0, MaxCevapLength).TrimEnd() + "...";
 
             ofke = Math.Max(MinOfke, Math.Min(MaxOfke, ofke));
 
-            response = new NpcResponse(cevap, kapiyiAc, kavgaBaslat, ofke);
+            response = new NpcResponse(cevap, kapiyiAc, kavgaBaslat, ofke, alinanAkce);
             return true;
         }
 
