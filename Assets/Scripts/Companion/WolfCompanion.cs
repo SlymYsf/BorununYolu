@@ -1,23 +1,30 @@
 using UnityEngine;
 using UnityEngine.AI;
-
 public class WolfCompanion : MonoBehaviour
 {
     //State Machine: Börünün o an ne yaptığını tutacak
     public enum State
     {
         TakipEdiyor,
-        GoreveGidiyor,
-        EngeldeDurdu
+        GoreveGidiyor
+
     }
 
     public State currentState = State.TakipEdiyor; // Başlangıçta Aybarsı takip etsin
 
     private NavMeshAgent agent;
 
-    [Header("Hedefler")]
-    public Transform aybars;        // oyuncu
-    public Transform gorevNesnesi;  // Börüyü göndereceğimiz ip veya şalter gibi bir işlevsel nesne
+    // OOP ye uygun olmak için: public değişkenler gizlendi (private), ancak Inspector da görünmesi için [SerializeField] eklendi
+    [Header("Hedefler ve Etkileşim")]
+    [SerializeField] private Transform aybars;  // oyuncu
+    [SerializeField] private Transform gorevNesnesi; // Börüyü göndereceğimiz ip veya şalter gibi bir işlevsel nesne
+    [SerializeField] private GameObject kapaliKapi;   // ip çekilince ortadan kaybolacak engel/kapı
+
+    [Header("Sensör Ayarları")]
+    [SerializeField] private float gorusMesafesi = 0.5f;
+    [SerializeField] private float gorusAcisi = 30f;  // sağ ve sol ışınların merkezden sapma açısı
+
+    private Vector2 sonYon = Vector2.up; // Börünün durduğunda baktığı son yönü hafızada tutacak
 
     void Start()
     {
@@ -29,8 +36,8 @@ public class WolfCompanion : MonoBehaviour
 
     void Update()
     {
-        // Her karede Börü nün önünde engel var mı diye sensörle bak (RayCast)
-        EngelKontroluYap();
+        // Her karede Börü nün önünde etkileşim nesnesi var mı diye sensörle bak (RayCast)
+        EtkilesimKontroluYap();
 
         // E tuşuna basılırsa Börü göreve gitsin
         if (Input.GetKeyDown(KeyCode.E) && gorevNesnesi != null)
@@ -42,54 +49,57 @@ public class WolfCompanion : MonoBehaviour
         switch (currentState)
         {
             case State.TakipEdiyor:
-                // Aybars'tan 2 birim uzaklaştıysa peşinden git
                 if (Vector3.Distance(transform.position, aybars.position) > 2f)
                 {
                     agent.SetDestination(aybars.position);
                 }
                 else
                 {
-                    agent.ResetPath(); // Çok yaklaşınca dur
+                    agent.ResetPath();
                 }
                 break;
 
             case State.GoreveGidiyor:
-                // Şaltere/İpe doğru git
                 agent.SetDestination(gorevNesnesi.position);
-
-                // İpe yeterince yaklaştı mı?
-                if (Vector3.Distance(transform.position, gorevNesnesi.position) < 1f)
-                {
-                    Debug.Log("Börü ipe ulaştı ve çekti! Tekrar takibe dönüyor.");
-                    currentState = State.TakipEdiyor; // İş bitince tekrar Aybars'ı takibe dön
-                }
-                break;
-
-            case State.EngeldeDurdu:
-                // Sensör engel bulduğu için hareket etmeyi bırak
-                agent.ResetPath();
                 break;
         }
     }
 
-    // 2. SENSÖR (Raycast) MEKANİZMASI
-    void EngelKontroluYap()
+    void EtkilesimKontroluYap()
     {
-        // Börü nün hareket ettiği yönü al
+        // Börü sadece ipe giderken sensörlerini açsın
+        if (currentState != State.GoreveGidiyor) return;
+
         Vector2 yon = agent.velocity.normalized;
-        if (yon == Vector2.zero) return; //suruyorsa engel kontolü yapmaya gerek yok
-
-        // Börü nün önünden 3 birim ileri bir görünmez çizgi yolla
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, yon, 3f);
-
-        // Bu çizgiyi Scene ekranında görebilmek için:
-        Debug.DrawRay(transform.position, yon * 3f, Color.red);
-
-        // Işın bir şeye çarptıysa ve o şeyin etiketi Engel ise:
-        if (hit.collider != null && hit.collider.CompareTag("Engel"))
+        if (yon != Vector2.zero)
         {
-            Debug.Log("Önümde engel var! Mesafe: " + hit.distance);
-            currentState = State.EngeldeDurdu; // Börü nün durumunu durmaya al
+            sonYon = yon;
+        }
+
+        float[] acilar = { 0f, -gorusAcisi, gorusAcisi };
+
+        foreach (float aci in acilar)
+        {
+            Vector3 isinYonu = Quaternion.Euler(0, 0, aci) * sonYon;
+
+            RaycastHit2D[] hits = Physics2D.RaycastAll(transform.position, isinYonu, gorusMesafesi);
+            Debug.DrawRay(transform.position, isinYonu * gorusMesafesi, Color.yellow);
+
+            foreach (RaycastHit2D hit in hits)
+            {
+                if (hit.collider.CompareTag("Etkilesim"))
+                {
+                    Debug.Log($"Sensör ipe ulaştı! Açı: {aci}, Mesafe: {hit.distance}. Kapı açılıyor...");
+
+                    if (kapaliKapi != null)
+                    {
+                        kapaliKapi.SetActive(false);
+                    }
+
+                    currentState = State.TakipEdiyor; // Görev bitti Aybarsa dön
+                    return;
+                }
+            }
         }
     }
 }
