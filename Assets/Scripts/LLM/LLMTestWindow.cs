@@ -46,13 +46,17 @@ namespace BorununYolu.LLM
             _log.AppendLine($"Model: {model}  |  Bedel: {persona.GecisBedeli} akçe");
         }
 
-        private async void Send()
+                private async void Send()
         {
-            if (_dialogue.IsBusy || string.IsNullOrWhiteSpace(_input)) return;
+            if (_dialogue.IsBusy || (string.IsNullOrWhiteSpace(_input) && !_dialogue.OdemeBildirilmedi)) return;
 
             string text = _input.Trim();
             _input = string.Empty;
-            _log.AppendLine().AppendLine("Sen: " + text);
+
+            string logText = _dialogue.OdemeBildirilmedi
+                ? $"{text} (+ {persona.GecisBedeli} akçe verdiğini söyler)".Trim()
+                : text;
+            _log.AppendLine().AppendLine("Sen: " + logText);
 
             _waitStart = Time.realtimeSinceStartup;
             DialogueTurnResult result = await _dialogue.SayAsync(text, destroyCancellationToken);
@@ -60,22 +64,10 @@ namespace BorununYolu.LLM
             LogResult(result);
         }
 
-                private async void Pay()
+        private void Pay()
         {
-            if (!_dialogue.CanPay) return;
-
-            string text = _input.Trim();
-            _input = string.Empty;
-
-            string logText = string.IsNullOrEmpty(text)
-                ? $"(Akçe ver: {persona.GecisBedeli})"
-                : $"{text} (Akçe ver: {persona.GecisBedeli})";
-            _log.AppendLine().AppendLine("Sen: " + logText);
-
-            _waitStart = Time.realtimeSinceStartup;
-            DialogueTurnResult result = await _dialogue.PayAsync(text, destroyCancellationToken);
-            if (this == null) return;
-            LogResult(result);
+            if (!_dialogue.Pay()) return;
+            _log.AppendLine().AppendLine($"(Kesenden {persona.GecisBedeli} akçe verdin. Kese: {_dialogue.Akce})");
         }
 
         private void LogResult(DialogueTurnResult result)

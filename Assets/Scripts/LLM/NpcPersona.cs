@@ -6,8 +6,9 @@ namespace BorununYolu.LLM
     [CreateAssetMenu(fileName = "NpcPersona", menuName = "Borunun Yolu/NPC Persona")]
     public class NpcPersona : ScriptableObject
     {
-        [Header("Kimlik")]
+                [Header("Kimlik")]
         [SerializeField] private string displayName = "Deli Dumrul";
+        [SerializeField, TextArea(2, 4)] private string acilisSozu = "Dur yolcu! Bu köprüden bedavaya kimse geçmez.";
         [SerializeField, TextArea(15, 60)] private string systemPrompt;
 
         [Header("Oyun kuralları")]
@@ -18,6 +19,7 @@ namespace BorununYolu.LLM
         [SerializeField] private int iknaIcinMinMesaj = 3;
 
         public string DisplayName => displayName;
+        public string AcilisSozu => acilisSozu;
         public int GecisBedeli => gecisBedeli;
         public int BaslangicOfkesi => baslangicOfkesi;
         public int KapiIcinMaxOfke => kapiIcinMaxOfke;
