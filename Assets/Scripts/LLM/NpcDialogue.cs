@@ -61,11 +61,14 @@ namespace BorununYolu.LLM
         public int Akce { get; private set; }
         public int Ofke { get; private set; }
         public bool BedelOdendi { get; private set; }
+        public bool OdemeBildirilmedi { get; private set; }
         public int OyuncuMesajSayisi { get; private set; }
         public bool IsBusy { get; private set; }
         public bool IsOver { get; private set; }
 
         public bool CanPay => !BedelOdendi && !IsOver && !IsBusy && Akce >= _persona.GecisBedeli;
+
+        private string OdemeMesaji => $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana verdim.)";
 
         public NpcDialogue(ILLMClient client, NpcPersona persona, int baslangicAkcesi)
         {
@@ -79,43 +82,48 @@ namespace BorununYolu.LLM
             Akce = akce;
             Ofke = _persona.BaslangicOfkesi;
             BedelOdendi = false;
+            OdemeBildirilmedi = false;
             OyuncuMesajSayisi = 0;
             IsOver = false;
             _history.Clear();
             _history.Add(new ChatMessage("system", _persona.BuildSystemPrompt(Akce, Ofke, BedelOdendi)));
         }
 
+        /// <summary>
+        /// Geçiş bedelini öder. Modele bir şey göndermez; ödeme bilgisi
+        /// oyuncunun bir sonraki mesajına eklenir.
+        /// </summary>
+        public bool Pay()
+        {
+            if (!CanPay) return false;
+
+            Akce -= _persona.GecisBedeli;
+            BedelOdendi = true;
+            OdemeBildirilmedi = true;
+            return true;
+        }
+
         public Task<DialogueTurnResult> SayAsync(string text, CancellationToken ct = default)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            string mesaj = text?.Trim() ?? string.Empty;
+
+            if (OdemeBildirilmedi)
+                mesaj = (mesaj + " " + OdemeMesaji).Trim();
+
+            if (mesaj.Length == 0)
                 return Task.FromResult(DialogueTurnResult.Fail(LLMStatus.InvalidResponse, "Boş mesaj gönderilemez."));
 
-            return RunTurnAsync(text.Trim(), payment: false, ct);
+            return RunTurnAsync(mesaj, ct);
         }
 
-                public Task<DialogueTurnResult> PayAsync(string text = null, CancellationToken ct = default)
-        {
-            if (!CanPay)
-                return Task.FromResult(DialogueTurnResult.Fail(LLMStatus.InvalidResponse,
-                    "Kesende yeterli akçe yok ya da bedel zaten ödendi."));
-
-            string odemeMesaji = $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana veriyorum.)";
-            string mesaj = string.IsNullOrWhiteSpace(text)
-                ? odemeMesaji
-                : $"{text.Trim()} {odemeMesaji}";
-
-            return RunTurnAsync(mesaj, payment: true, ct);
-        }
-        private async Task<DialogueTurnResult> RunTurnAsync(string text, bool payment, CancellationToken ct)
+        private async Task<DialogueTurnResult> RunTurnAsync(string text, CancellationToken ct)
         {
             if (IsBusy) return DialogueTurnResult.Fail(LLMStatus.InvalidResponse, "Önceki cevap bekleniyor.");
             if (IsOver) return DialogueTurnResult.Fail(LLMStatus.InvalidResponse, "Konuşma sona erdi.");
 
-            // Bu turda geçerli olacak durum (ödeme ancak cevap başarılı gelirse kesinleşir).
-            bool bedelBuTur = BedelOdendi || payment;
-            int akceBuTur = payment ? Akce - _persona.GecisBedeli : Akce;
+            bool odemeBuTurdaBildiriliyor = OdemeBildirilmedi;
 
-            _history[0] = new ChatMessage("system", _persona.BuildSystemPrompt(akceBuTur, Ofke, bedelBuTur));
+            _history[0] = new ChatMessage("system", _persona.BuildSystemPrompt(Akce, Ofke, BedelOdendi));
             _history.Add(new ChatMessage("user", text));
 
             IsBusy = true;
@@ -145,12 +153,8 @@ namespace BorununYolu.LLM
 
             _history.Add(new ChatMessage("assistant", result.RawText));
 
-            // Tur başarılı: durumu kesinleştir.
-            if (payment)
-            {
-                Akce = akceBuTur;
-                BedelOdendi = true;
-            }
+            // Tur başarılı: ödeme bilgisi artık Deli Dumrul'a ulaştı.
+            if (odemeBuTurdaBildiriliyor) OdemeBildirilmedi = false;
             OyuncuMesajSayisi++;
 
             // Öfke yumuşatma: model öfkeyi bir anda değiştiremez.
