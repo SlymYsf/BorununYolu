@@ -18,11 +18,16 @@ namespace BorununYolu.LLM
     /// - Düşünme (thinking) modu kapalıdır; aksi halde küçük modeller dakikalarca bekletebilir.
     /// - Hiçbir durumda exception fırlatmaz; her hata LLMResult içinde LLMStatus ile döner.
     /// </summary>
-    public sealed class OllamaClient : ILLMClient
+    public sealed class OllamaClient : ILLMClient, IModelWarmup
     {
         // HttpClient tek örnek olarak paylaşılır (her istekte yeni oluşturmak soket sızıntısı yapar).
         // Zaman aşımını kendimiz CancellationToken ile yönettiğimiz için buradaki süre sınırsız.
         private static readonly HttpClient Http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
+
+        // İlk yükleme ~13 sn sürüyor; ısıtma isteğine normal sohbetten daha uzun süre tanınır.
+        private static readonly TimeSpan WarmupTimeout = TimeSpan.FromSeconds(90);
+
+        private const string EmptyAnswerError = "Model boş bir yanıt döndürdü.";
 
         private readonly string _chatUrl;
         private readonly string _model;
@@ -48,9 +53,36 @@ namespace BorununYolu.LLM
             if (messages == null || messages.Count == 0)
                 return LLMResult.Fail(LLMStatus.InvalidResponse, "Modele gönderilecek mesaj yok.");
 
-            string requestJson = BuildRequestJson(messages);
+            return await PostChatAsync(BuildRequestJson(messages), _timeout, cancellationToken);
+        }
 
-            using (var timeoutCts = new CancellationTokenSource(_timeout))
+        /// <summary>
+        /// Modeli belleğe yükletir. Ollama, boş mesaj listesiyle gelen /api/chat isteğinde
+        /// cevap üretmeden sadece modeli yükler. Böylece oyuncunun ilk mesajı ~13 sn yerine ~3 sn sürer.
+        /// </summary>
+        public async Task<LLMResult> WarmUpAsync(CancellationToken cancellationToken = default)
+        {
+            var payload = new JObject
+            {
+                ["model"] = _model,
+                ["messages"] = new JArray(),
+                ["stream"] = false,
+                ["keep_alive"] = "15m"
+            };
+
+            LLMResult result = await PostChatAsync(payload.ToString(Formatting.None), WarmupTimeout, cancellationToken);
+
+            // Isıtma yanıtında içerik boş gelir; bu bir hata değildir.
+            if (result.Status == LLMStatus.InvalidResponse && result.ErrorMessage == EmptyAnswerError)
+                return LLMResult.Ok(string.Empty);
+
+            return result;
+        }
+
+        /// <summary>İsteği gönderir, zaman aşımını uygular ve her hatayı LLMResult'a çevirir.</summary>
+        private async Task<LLMResult> PostChatAsync(string requestJson, TimeSpan timeout, CancellationToken cancellationToken)
+        {
+            using (var timeoutCts = new CancellationTokenSource(timeout))
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
             {
                 try
@@ -65,7 +97,7 @@ namespace BorununYolu.LLM
 
                         string messageContent = ExtractMessageContent(body);
                         if (string.IsNullOrWhiteSpace(messageContent))
-                            return LLMResult.Fail(LLMStatus.InvalidResponse, "Model boş bir yanıt döndürdü.");
+                            return LLMResult.Fail(LLMStatus.InvalidResponse, EmptyAnswerError);
 
                         return LLMResult.Ok(messageContent);
                     }
@@ -76,7 +108,7 @@ namespace BorununYolu.LLM
                         return LLMResult.Fail(LLMStatus.Cancelled, "İstek iptal edildi.");
 
                     return LLMResult.Fail(LLMStatus.Timeout,
-                        $"Model {_timeout.TotalSeconds:0} saniye içinde yanıt vermedi.");
+                        $"Model {timeout.TotalSeconds:0} saniye içinde yanıt vermedi.");
                 }
                 catch (HttpRequestException)
                 {
