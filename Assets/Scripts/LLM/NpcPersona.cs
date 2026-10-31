@@ -34,14 +34,15 @@ namespace BorununYolu.LLM
             sb.AppendLine("ŞU ANKİ DURUM:");
             sb.AppendLine($"- Geçiş bedeli: {gecisBedeli} akçe");
 
+            // Bu satır system prompt'taki 3. kuralla birebir aynı olmalı: model ödemeye sadece buna bakarak inanır.
             if (bedelOdendi)
             {
-                sb.AppendLine($"- Yolcu geçiş bedeli olan {gecisBedeli} akçeyi SANA VERDİ. Bedel tamamen ödendi.");
+                sb.AppendLine("- Geçiş bedeli ödendi mi: Evet");
                 sb.AppendLine($"- Yolcunun kesesinde kalan akçe: {kesedekiAkce} (bu önemli değil, bedel zaten ödendi)");
             }
             else
             {
-                sb.AppendLine("- Geçiş bedeli henüz ödenmedi.");
+                sb.AppendLine("- Geçiş bedeli ödendi mi: Hayır");
                 sb.AppendLine($"- Yolcunun kesesindeki akçe: {kesedekiAkce}");
             }
 
