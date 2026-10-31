@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+
 public class WolfCompanion : MonoBehaviour
 {
     //State Machine: Börünün o an ne yaptığını tutacak
@@ -7,12 +8,13 @@ public class WolfCompanion : MonoBehaviour
     {
         TakipEdiyor,
         GoreveGidiyor
-
     }
 
     public State currentState = State.TakipEdiyor; // Başlangıçta Aybarsı takip etsin
 
     private NavMeshAgent agent;
+    private Animator anim; 
+    private string suAnkiAnimasyon;
 
     // OOP ye uygun olmak için: public değişkenler gizlendi (private), ancak Inspector da görünmesi için [SerializeField] eklendi
     [Header("Hedefler ve Etkileşim")]
@@ -20,9 +22,10 @@ public class WolfCompanion : MonoBehaviour
     [SerializeField] private Transform gorevNesnesi; // Börüyü göndereceğimiz ip veya şalter gibi bir işlevsel nesne
     [SerializeField] private GameObject kapaliKapi;   // ip çekilince ortadan kaybolacak engel/kapı
 
+
     [Header("Sensör Ayarları")]
     [SerializeField] private float gorusMesafesi = 0.5f;
-    [SerializeField] private float gorusAcisi = 30f;  // sağ ve sol ışınların merkezden sapma açısı
+    [SerializeField] private float gorusAcisi = 20f;  // sağ ve sol ışınların merkezden sapma açısı
 
     private Vector2 sonYon = Vector2.up; // Börünün durduğunda baktığı son yönü hafızada tutacak
 
@@ -30,6 +33,8 @@ public class WolfCompanion : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         // 2D ye uyarlama ayarları
+        anim = GetComponent<Animator>(); 
+
         agent.updateRotation = false;
         agent.updateUpAxis = false;
     }
@@ -37,6 +42,7 @@ public class WolfCompanion : MonoBehaviour
     void Update()
     {
         // Her karede Börü nün önünde etkileşim nesnesi var mı diye sensörle bak (RayCast)
+
         EtkilesimKontroluYap();
 
         // E tuşuna basılırsa Börü göreve gitsin
@@ -63,6 +69,45 @@ public class WolfCompanion : MonoBehaviour
                 agent.SetDestination(gorevNesnesi.position);
                 break;
         }
+
+        
+        HareketAnimasyonlariniYonet();
+    }
+
+    void HareketAnimasyonlariniYonet()
+    {
+        
+        float hiz = agent.velocity.magnitude;
+
+        
+        if (agent.velocity.x > 0.1f)
+        {
+            transform.localScale = new Vector3(-1, 1, 1); // Sağa bak
+        }
+        else if (agent.velocity.x < -0.1f)
+        {
+            transform.localScale = new Vector3(1, 1, 1); // Sola bak
+        }
+
+        // Hız 0.1 den büyükse hareket ediyordur koşma animasyonunu oynat
+        if (hiz > 0.1f)
+        {
+   
+            AnimasyonOynat("Siberian-Husky-walk");
+        }
+        else
+        {
+            AnimasyonOynat("Siberian-Husky-idle");
+        }
+    }
+
+   
+    void AnimasyonOynat(string yeniAnimasyon)
+    {
+        if (suAnkiAnimasyon == yeniAnimasyon) return;
+
+        anim.Play(yeniAnimasyon);
+        suAnkiAnimasyon = yeniAnimasyon;
     }
 
     void EtkilesimKontroluYap()
