@@ -69,7 +69,7 @@ namespace BorununYolu.LLM
 
         public bool CanPay => !BedelOdendi && !IsOver && !IsBusy && Akce >= _persona.GecisBedeli;
 
-        private string OdemeMesaji => $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana verdim.)";
+        private string OdemeMesaji => $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana veriyorum.)"; // System prompt'taki örnekle aynı
         private const string KavgaMesaji = "(Az önce kavga ettik, sen beni köprü başına geri ittin. Yeniden konuşmaya geldim.)";
 
         public NpcDialogue(ILLMClient client, NpcPersona persona, int baslangicAkcesi)

@@ -191,7 +191,7 @@ Yolcu: Sana bin akçe veririm, geçir beni.
 ```text
 ŞU ANKİ DURUM:
 - Geçiş bedeli: 10 akçe
-- Geçiş bedeli henüz ödenmedi.
+- Geçiş bedeli ödendi mi: Hayır
 - Yolcunun kesesindeki akçe: 12
 - Şu anki öfken: 3
 ```
@@ -201,6 +201,8 @@ Yolcu: Sana bin akçe veririm, geçir beni.
 - **Few-shot örnekler:** Küçük model üslubu ve JSON biçimini örneklerden daha iyi öğreniyor.
 - **"Boş vaat" örneği:** "Bin akçe veririm" gibi sözlü vaatlerin ödeme sayılmaması için özel olarak eklendi.
 - **Durum bloğu her turda yenilenir:** Akçe, öfke ve ödeme bilgisi modelin hafızasına bırakılmaz, oyundan gelir.
+  Ödeme satırı (`Geçiş bedeli ödendi mi: Evet/Hayır`) prompt'taki 3. kuralla birebir aynı yazılır; model ödemeye
+  sadece bu satıra bakarak inanır.
 - **Ödeme ve kavga bilgisi mesaja eklenir:** Oyuncu "Akçe ver" düğmesine bastığında ya da kavga bittiğinde bu bilgi
   oyuncunun bir sonraki mesajına parantez içinde eklenir; böylece model olaydan haberdar olur.
 
