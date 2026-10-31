@@ -62,6 +62,7 @@ namespace BorununYolu.LLM
         public int Ofke { get; private set; }
         public bool BedelOdendi { get; private set; }
         public bool OdemeBildirilmedi { get; private set; }
+        public bool KavgaBildirilmedi { get; private set; }
         public int OyuncuMesajSayisi { get; private set; }
         public bool IsBusy { get; private set; }
         public bool IsOver { get; private set; }
@@ -69,6 +70,7 @@ namespace BorununYolu.LLM
         public bool CanPay => !BedelOdendi && !IsOver && !IsBusy && Akce >= _persona.GecisBedeli;
 
         private string OdemeMesaji => $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana verdim.)";
+        private const string KavgaMesaji = "(Az önce kavga ettik, sen beni köprü başına geri ittin. Yeniden konuşmaya geldim.)";
 
         public NpcDialogue(ILLMClient client, NpcPersona persona, int baslangicAkcesi)
         {
@@ -83,6 +85,7 @@ namespace BorununYolu.LLM
             Ofke = _persona.BaslangicOfkesi;
             BedelOdendi = false;
             OdemeBildirilmedi = false;
+            KavgaBildirilmedi = false;
             OyuncuMesajSayisi = 0;
             IsOver = false;
             _history.Clear();
@@ -103,9 +106,24 @@ namespace BorununYolu.LLM
             return true;
         }
 
+        /// <summary>
+        /// Kavga bittikten sonra çağrılır: Deli Dumrul içini boşaltmış olur, öfkesi biraz düşer.
+        /// Kavga bilgisi, ödemede olduğu gibi oyuncunun bir sonraki mesajına eklenir.
+        /// </summary>
+        public void KavgaSonrasiSakinles(int ofkeDususu)
+        {
+            if (IsOver) return;
+
+            Ofke = Math.Max(0, Ofke - Math.Max(0, ofkeDususu));
+            KavgaBildirilmedi = true;
+        }
+
         public Task<DialogueTurnResult> SayAsync(string text, CancellationToken ct = default)
         {
             string mesaj = text?.Trim() ?? string.Empty;
+
+            if (KavgaBildirilmedi)
+                mesaj = (KavgaMesaji + " " + mesaj).Trim();
 
             if (OdemeBildirilmedi)
                 mesaj = (mesaj + " " + OdemeMesaji).Trim();
@@ -122,6 +140,7 @@ namespace BorununYolu.LLM
             if (IsOver) return DialogueTurnResult.Fail(LLMStatus.InvalidResponse, "Konuşma sona erdi.");
 
             bool odemeBuTurdaBildiriliyor = OdemeBildirilmedi;
+            bool kavgaBuTurdaBildiriliyor = KavgaBildirilmedi;
 
             _history[0] = new ChatMessage("system", _persona.BuildSystemPrompt(Akce, Ofke, BedelOdendi));
             _history.Add(new ChatMessage("user", text));
@@ -155,6 +174,7 @@ namespace BorununYolu.LLM
 
             // Tur başarılı: ödeme bilgisi artık Deli Dumrul'a ulaştı.
             if (odemeBuTurdaBildiriliyor) OdemeBildirilmedi = false;
+            if (kavgaBuTurdaBildiriliyor) KavgaBildirilmedi = false;
             OyuncuMesajSayisi++;
 
             // Öfke yumuşatma: model öfkeyi bir anda değiştiremez.

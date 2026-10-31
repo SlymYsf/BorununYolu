@@ -25,6 +25,9 @@ namespace BorununYolu.NPC
         [SerializeField] private string model = "qwen3.5:4b";
         [SerializeField] private float timeoutSeconds = 30f;
 
+        [Header("Kavga")]
+        [SerializeField, Range(0, 10)] private int kavgaSonrasiOfkeDususu = 3;
+
         [Header("Test")]
         [SerializeField] private bool openOnStart;
 
@@ -33,6 +36,8 @@ namespace BorununYolu.NPC
         public UnityEvent ConversationEnded;
 
         private NpcDialogue _dialogue;
+        private IModelWarmup _warmup;
+        private bool _warmupStarted;
         private bool _playerInRange;
 
         private void Awake()
@@ -46,7 +51,8 @@ namespace BorununYolu.NPC
 
             GetComponent<Collider2D>().isTrigger = true;
 
-            ILLMClient client = new OllamaClient(baseUrl, model, timeoutSeconds);
+            var client = new OllamaClient(baseUrl, model, timeoutSeconds);
+            _warmup = client;
             _dialogue = new NpcDialogue(client, persona, baslangicAkcesi);
 
             SetPromptVisible(false);
@@ -82,6 +88,35 @@ namespace BorununYolu.NPC
             SetPromptVisible(false);
             dialoguePanel.Open(_dialogue, persona, persona.AcilisSozu);
             ConversationStarted?.Invoke();
+        }
+
+        /// <summary>
+        /// Modeli arka planda belleğe yükletir; oyun beklemez. Köprü bölgesine girişte
+        /// (BridgeZoneTrigger.PlayerEntered) Inspector'dan çağrılır. Sadece bir kez çalışır.
+        /// </summary>
+        public async void WarmUpModel()
+        {
+            if (_warmup == null || _warmupStarted) return;
+            _warmupStarted = true;
+
+            LLMResult result = await _warmup.WarmUpAsync(destroyCancellationToken);
+            if (this == null) return;
+
+            if (!result.IsSuccess && result.Status != LLMStatus.Cancelled)
+            {
+                // Isıtma başarısızsa sorun değil; ilk mesajda hata panelde anlaşılır biçimde gösterilir.
+                Debug.LogWarning($"Model ısıtılamadı ({result.Status}): {result.ErrorMessage}");
+                _warmupStarted = false; // Oyuncu bölgeye tekrar girince yeniden denensin.
+            }
+        }
+
+        /// <summary>
+        /// Kavga bittiğinde (FightSequence.BlackedOut) çağrılır: öfke biraz düşer,
+        /// oyuncu yeniden konuşabilir.
+        /// </summary>
+        public void CalmAfterFight()
+        {
+            _dialogue?.KavgaSonrasiSakinles(kavgaSonrasiOfkeDususu);
         }
 
         private void OnPanelClosed()
