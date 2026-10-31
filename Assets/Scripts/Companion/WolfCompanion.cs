@@ -28,6 +28,7 @@ public class WolfCompanion : MonoBehaviour
     [SerializeField] private float gorusAcisi = 20f;  // sağ ve sol ışınların merkezden sapma açısı
 
     private Vector2 sonYon = Vector2.up; // Börünün durduğunda baktığı son yönü hafızada tutacak
+    private Vector3 orjinalBoyut;
 
     void Start()
     {
@@ -37,6 +38,8 @@ public class WolfCompanion : MonoBehaviour
 
         agent.updateRotation = false;
         agent.updateUpAxis = false;
+
+        orjinalBoyut = transform.localScale;
     }
 
     void Update()
@@ -55,7 +58,14 @@ public class WolfCompanion : MonoBehaviour
         switch (currentState)
         {
             case State.TakipEdiyor:
-                if (Vector3.Distance(transform.position, aybars.position) > 2f)
+                float mesafe = Vector3.Distance(transform.position, aybars.position);
+
+                if (mesafe > 8f)
+                {
+                    agent.Warp(aybars.position); // Börü gelmede sorun yaşarsa ışınlar
+                }
+                // Normal takip etme
+                else if (mesafe > 2f)
                 {
                     agent.SetDestination(aybars.position);
                 }
@@ -70,30 +80,30 @@ public class WolfCompanion : MonoBehaviour
                 break;
         }
 
-        
+
         HareketAnimasyonlariniYonet();
     }
 
     void HareketAnimasyonlariniYonet()
     {
-        
+
         float hiz = agent.velocity.magnitude;
 
-        
+
         if (agent.velocity.x > 0.1f)
         {
-            transform.localScale = new Vector3(-1, 1, 1); // Sağa bak
+            transform.localScale = new Vector3(Mathf.Abs(orjinalBoyut.x), orjinalBoyut.y, orjinalBoyut.z); // Sağa bak
         }
         else if (agent.velocity.x < -0.1f)
         {
-            transform.localScale = new Vector3(1, 1, 1); // Sola bak
+            transform.localScale = new Vector3(-Mathf.Abs(orjinalBoyut.x), orjinalBoyut.y, orjinalBoyut.z); // Sola bak
         }
 
         // Hız 0.1 den büyükse hareket ediyordur koşma animasyonunu oynat
         if (hiz > 0.1f)
         {
-   
-            AnimasyonOynat("Siberian-Husky-walk");
+
+            AnimasyonOynat("Siberian-Husky-run");
         }
         else
         {
@@ -101,7 +111,7 @@ public class WolfCompanion : MonoBehaviour
         }
     }
 
-   
+
     void AnimasyonOynat(string yeniAnimasyon)
     {
         if (suAnkiAnimasyon == yeniAnimasyon) return;
