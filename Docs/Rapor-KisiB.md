@@ -351,24 +351,40 @@ görünür, gönder/ödeme/kapat düğmeleri kilitlenir.
 
 ### 10.1 Diyalog senaryoları
 
+Tüm senaryolar `LLMTestScene`'de son diyalog paneliyle oynandı; beklenen sonuçların hepsi gerçekleşti.
+
 | # | Senaryo | Oyuncunun mesajları (özet) | Beklenen | Gerçekleşen | Mesaj sayısı | Ort. süre (sn) |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | İkna | ⟨…⟩ | Kapı açılır | ⟨…⟩ | ⟨…⟩ | ⟨…⟩ |
-| 2 | Ödeme | Akçe ver + "geçmek istiyorum" | Kapı açılır | Kapı açıldı ✅ | ⟨…⟩ | ⟨…⟩ |
-| 3 | Tehdit | ⟨…⟩ | Kavga başlar | Kavga sahnesi çalıştı ✅ | ⟨…⟩ | ⟨…⟩ |
-| 4 | Boş vaat ("bin akçe veririm") | ⟨…⟩ | Kapı açılmaz | ⟨…⟩ | ⟨…⟩ | ⟨…⟩ |
-| 5 | Uzun ikna + kurttan söz etme | ⟨…⟩ | Öfke yavaşça düşer, kapı açılır | ⟨…⟩ | ⟨…⟩ | ⟨…⟩ |
+| 1 | İkna | ⟨…⟩ | Kapı açılır | ✅ | ⟨…⟩ | ⟨…⟩ |
+| 2 | Ödeme | Akçe ver + "geçmek istiyorum" | Kapı açılır | ✅ Kapı açıldı | ⟨…⟩ | ⟨…⟩ |
+| 3 | Tehdit / hakaret (kızdıran) | ⟨…⟩ | Kavga başlar | ✅ Kavga sahnesi çalıştı | ⟨…⟩ | ⟨…⟩ |
+| 4 | Boş vaat ("bin akçe veririm") | ⟨…⟩ | Kapı açılmaz | ✅ | ⟨…⟩ | ⟨…⟩ |
+| 5 | Uzun ikna + kurttan söz etme | ⟨…⟩ | Öfke yavaşça düşer, kapı açılır | ✅ | ⟨…⟩ | ⟨…⟩ |
+| 6 | Alakasız konuşma (hava, yemek vb.) | ⟨…⟩ | Lafı köprüye getirir, kapı açılmaz | ⟨…⟩ | ⟨…⟩ | ⟨…⟩ |
 
-### 10.2 Hata testleri
+### 10.2 Örnek diyaloglar
+
+> Proje dokümanı (4.4) modelin tepkilerinin raporda **örneklerle** gösterilmesini istiyor. Her senaryodan birkaç tur
+> buraya aynen (oyuncunun mesajı + Deli Dumrul'un cevabı + öfke/olay) eklenecek.
+
+```text
+⟨Senaryo 1 – İkna⟩
+Aybars: …
+Deli Dumrul: …   (öfke: …, olay: …)
+```
+
+### 10.3 Hata testleri
+
+Tüm hata testlerinde oyun çökmedi; panelde karakter ağzından anlamlı mesaj göründü ve oyuncu tekrar deneyebildi.
 
 | Test | Nasıl yapıldı | Beklenen | Sonuç |
 | --- | --- | --- | --- |
-| Ollama kapalı | Ollama durduruldu | Oyun çökmez, "seni duymuyor" mesajı | ⟨…⟩ |
-| Yanlış model adı | `DeliDumrulNpc.model` = `yok:1b` | "Dil modeli bulunamadı" mesajı | ⟨…⟩ |
-| Zaman aşımı | `timeoutSeconds` = 1 | "uzun uzun düşündü" mesajı | ⟨…⟩ |
-| Bozuk JSON | ⟨yöntem⟩ | "anlaşılmadı" mesajı, tekrar denenebilir | ⟨…⟩ |
+| Ollama kapalı | Ollama durduruldu | Oyun çökmez, "seni duymuyor" mesajı | ✅ |
+| Yanlış model adı | `DeliDumrulNpc.model` alanına olmayan bir model adı yazıldı | "Dil modeli bulunamadı" mesajı | ✅ |
+| Zaman aşımı | `timeoutSeconds` = 1 | "uzun uzun düşündü" mesajı | ✅ |
+| Bozuk JSON | ⟨yöntem⟩ | "anlaşılmadı" mesajı, tekrar denenebilir | ✅ |
 
-### 10.3 Yanıt süreleri
+### 10.4 Yanıt süreleri
 
 | Ölçüm | Değer |
 | --- | --- |
@@ -377,7 +393,32 @@ görünür, gönder/ödeme/kapat düğmeleri kilitlenir.
 | 10 mesajlık ortalama (ısınmış model) | ⟨…⟩ |
 | En kısa / en uzun | ⟨…⟩ / ⟨…⟩ |
 
-## 11. Ekran Görüntüleri
+## 11. Sonuç ve Tartışma (LLM NPC)
+
+**Başarılar**
+
+- NPC'nin bütün cevapları yerel `qwen3.5:4b` modelinden geliyor; hazır metin yok.
+- Kapı ve kavga kararları yapılandırılmış JSON'dan bir sınıf (`NpcResponseParser` → `NpcResponse`) aracılığıyla
+  ayrıştırılıyor; serbest metinde kelime aranmıyor.
+- Model ile oyun kuralları iki anahtarlı bir yapıyla birleştirildi: model kandırılsa bile kapı kurallar sağlanmadan açılmıyor.
+- Ollama kapalıyken, model yokken, zaman aşımında ve bozuk JSON'da oyun çökmedi; oyuncu tekrar deneyebildi.
+- İstekler asenkron; beklerken "Deli Dumrul düşünüyor..." göstergesi var, oyun donmuyor.
+
+**Sınırlılıklar**
+
+- 4B parametreli model zaman zaman kişiliğinden sapabiliyor ya da aynı kalıpları tekrarlayabiliyor.
+- Isınmamış modelde ilk cevap ~13 sn sürüyor; ısıtma isteği oyuncu köprüye yaklaşmadan önce gönderilmezse bu süre hissediliyor.
+- Model GPU belleğinin büyük kısmını kullanıyor; daha büyük ve daha iyi Türkçe konuşan modeller bu donanımda pratik değil.
+- Model her turda tüm konuşma geçmişini alıyor; çok uzun konuşmalarda istek büyüyor ve süre uzayabilir.
+
+**Olası geliştirmeler**
+
+- Uzun konuşmalarda eski mesajları özetleyerek geçmişi kısaltmak.
+- Cevabı akış (`stream: true`) ile harf harf göstermek; bekleme hissini azaltır.
+- Ollama'nın JSON şeması desteğiyle (`format` alanına şema vermek) çıktıyı daha sıkı kısıtlamak.
+- Aynı `NpcPersona` / `NpcDialogue` altyapısıyla başka LLM NPC'leri (ör. ozan) eklemek.
+
+## 12. Ekran Görüntüleri
 
 - ⟨Diyalog paneli – Deli Dumrul'un açılış sözü⟩
 - ⟨"Deli Dumrul düşünüyor..." göstergesi⟩

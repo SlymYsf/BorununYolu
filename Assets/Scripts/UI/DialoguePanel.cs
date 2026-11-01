@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Threading.Tasks;
 using BorununYolu.Core;
 using BorununYolu.LLM;
@@ -25,6 +26,11 @@ namespace BorununYolu.UI
         [SerializeField] private Button payButton;
         [SerializeField] private Button closeButton;
 
+        [Header("Arka plan karartma")]
+        [SerializeField] private CanvasGroup backdrop; // Tam ekran yarı saydam katman (isteğe bağlı)
+        [SerializeField, Range(0f, 1f)] private float backdropAlpha = 0.6f;
+        [SerializeField] private float backdropFadeDuration = 0.3f;
+
         [Header("Olaylar")]
         public UnityEvent DoorOpened;
         public UnityEvent FightStarted;
@@ -32,6 +38,7 @@ namespace BorununYolu.UI
 
         private NpcDialogue _dialogue;
         private NpcPersona _persona;
+        private Coroutine _backdropFade;
 
         public bool IsOpen => root.activeSelf;
 
@@ -42,6 +49,12 @@ namespace BorununYolu.UI
             closeButton.onClick.AddListener(Close);
             inputField.onSubmit.AddListener(_ => OnSendClicked());
             root.SetActive(false);
+
+            if (backdrop != null)
+            {
+                backdrop.alpha = 0f;
+                backdrop.blocksRaycasts = false; // Sadece görsel; tıklamaları engellemesin.
+            }
         }
 
         public void Open(NpcDialogue dialogue, NpcPersona persona, string greeting)
@@ -52,6 +65,7 @@ namespace BorununYolu.UI
             npcLineText.text = greeting;
             inputField.text = string.Empty;
             root.SetActive(true);
+            FadeBackdrop(backdropAlpha);
             RefreshUI();
             FocusInput();
         }
@@ -60,10 +74,11 @@ namespace BorununYolu.UI
         {
             if (_dialogue != null && _dialogue.IsBusy) return; // Cevap beklenirken kapatma.
             root.SetActive(false);
+            FadeBackdrop(0f);
             Closed?.Invoke();
         }
 
-                private async void OnSendClicked()
+        private async void OnSendClicked()
         {
             if (_dialogue == null || _dialogue.IsBusy || _dialogue.IsOver) return;
 
@@ -130,6 +145,25 @@ namespace BorununYolu.UI
             statusText.text = _dialogue.BedelOdendi
                 ? $"Kese: {_dialogue.Akce} akçe   (Bedel ödendi)"
                 : $"Kese: {_dialogue.Akce} akçe   Bedel: {_persona.GecisBedeli} akçe";
+        }
+
+        private void FadeBackdrop(float target)
+        {
+            if (backdrop == null) return;
+            if (_backdropFade != null) StopCoroutine(_backdropFade);
+            _backdropFade = StartCoroutine(FadeBackdropRoutine(target));
+        }
+
+        private IEnumerator FadeBackdropRoutine(float target)
+        {
+            float start = backdrop.alpha;
+            for (float t = 0f; t < backdropFadeDuration; t += Time.unscaledDeltaTime)
+            {
+                backdrop.alpha = Mathf.Lerp(start, target, t / backdropFadeDuration);
+                yield return null;
+            }
+            backdrop.alpha = target;
+            _backdropFade = null;
         }
 
         private void FocusInput()
