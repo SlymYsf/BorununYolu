@@ -41,6 +41,10 @@ namespace BorununYolu.NPC
         private bool _warmupStarted;
         private bool _playerInRange;
 
+        /// <summary>Köprü hangi yolla geçildi (Dede Korkut okur).</summary>
+        public GecisYolu GecisYolu => _dialogue?.GecisYolu ?? GecisYolu.Gecilmedi;
+        public int KavgaSayisi => _dialogue?.KavgaSayisi ?? 0;
+
         private void Awake()
         {
             if (persona == null || dialoguePanel == null)
