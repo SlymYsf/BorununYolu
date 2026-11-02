@@ -31,6 +31,10 @@ namespace BorununYolu.UI
         [SerializeField, Range(0f, 1f)] private float backdropAlpha = 0.6f;
         [SerializeField] private float backdropFadeDuration = 0.3f;
 
+        [Header("Konuşma bitince")]
+        [Tooltip("Kapı açılınca son söz okunsun diye panelin kapanmadan önce beklediği süre (sn).")]
+        [SerializeField] private float autoCloseDelay = 3f;
+
         [Header("Olaylar")]
         public UnityEvent DoorOpened;
         public UnityEvent FightStarted;
@@ -114,7 +118,10 @@ namespace BorununYolu.UI
                 npcLineText.text = result.NpcText;
 
                 if (result.Event == DialogueEvent.DoorOpened)
+                {
                     DoorOpened?.Invoke();
+                    StartCoroutine(CloseAfterDelay());
+                }
                 else if (result.Event == DialogueEvent.FightStarted)
                     FightStarted?.Invoke();
             }
@@ -145,6 +152,12 @@ namespace BorununYolu.UI
             statusText.text = _dialogue.BedelOdendi
                 ? $"Kese: {_dialogue.Akce} akçe   (Bedel ödendi)"
                 : $"Kese: {_dialogue.Akce} akçe   Bedel: {_persona.GecisBedeli} akçe";
+        }
+
+        private IEnumerator CloseAfterDelay()
+        {
+            yield return new WaitForSeconds(autoCloseDelay);
+            if (IsOpen) Close();
         }
 
         private void FadeBackdrop(float target)
