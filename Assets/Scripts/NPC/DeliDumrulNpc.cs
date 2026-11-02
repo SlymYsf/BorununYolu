@@ -8,8 +8,8 @@ using UnityEngine.InputSystem;
 namespace BorununYolu.NPC
 {
     /// <summary>
-    /// Köprüyü tutan Deli Dumrul. Oyuncu yaklaşınca konuşma panelini açar; panel
-    /// kapatıldıysa yanında E'ye basarak yeniden açılır.
+    /// Köprüyü tutan Deli Dumrul. Oyuncu yaklaşınca "Etkileşime gir (E)" yazısı çıkar,
+    /// E'ye basınca konuşma paneli açılır.
     /// Konuşma (NpcDialogue) panel kapanıp açılsa da devam eder.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
@@ -18,9 +18,8 @@ namespace BorununYolu.NPC
         [Header("NPC")]
         [SerializeField] private NpcPersona persona;
         [SerializeField] private DialoguePanel dialoguePanel;
-        [SerializeField] private GameObject talkPrompt; // "E: Konuş" yazısı (isteğe bağlı)
+        [SerializeField] private GameObject talkPrompt; // "Etkileşime gir (E)" yazısı (isteğe bağlı)
         [SerializeField] private int baslangicAkcesi = 12;
-        [SerializeField] private bool openOnApproach = true; // Yaklaşınca E beklemeden aç.
 
         [Header("Ollama")]
         [SerializeField] private string baseUrl = "http://localhost:11434";
@@ -41,6 +40,10 @@ namespace BorununYolu.NPC
         private IModelWarmup _warmup;
         private bool _warmupStarted;
         private bool _playerInRange;
+
+        /// <summary>Köprü hangi yolla geçildi (Dede Korkut okur).</summary>
+        public GecisYolu GecisYolu => _dialogue?.GecisYolu ?? GecisYolu.Gecilmedi;
+        public int KavgaSayisi => _dialogue?.KavgaSayisi ?? 0;
 
         private void Awake()
         {
@@ -131,11 +134,7 @@ namespace BorununYolu.NPC
         {
             if (!other.CompareTag("Player")) return;
             _playerInRange = true;
-
-            if (openOnApproach && !_dialogue.IsOver)
-                StartConversation();
-            else
-                SetPromptVisible(!dialoguePanel.IsOpen && !_dialogue.IsOver);
+            SetPromptVisible(!dialoguePanel.IsOpen && !_dialogue.IsOver);
         }
 
         private void OnTriggerExit2D(Collider2D other)

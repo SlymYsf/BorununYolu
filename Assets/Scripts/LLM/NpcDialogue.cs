@@ -14,6 +14,14 @@ namespace BorununYolu.LLM
         FightStarted
     }
 
+    /// <summary>Köprünün hangi yolla geçildiği (Dede Korkut'un kapanış sözü buna göre değişir).</summary>
+    public enum GecisYolu
+    {
+        Gecilmedi,
+        Odeme,
+        Ikna
+    }
+
     public sealed class DialogueTurnResult
     {
         public bool Success { get; }
@@ -64,6 +72,8 @@ namespace BorununYolu.LLM
         public bool OdemeBildirilmedi { get; private set; }
         public bool KavgaBildirilmedi { get; private set; }
         public int OyuncuMesajSayisi { get; private set; }
+        public int KavgaSayisi { get; private set; }
+        public GecisYolu GecisYolu { get; private set; }
         public bool IsBusy { get; private set; }
         public bool IsOver { get; private set; }
 
@@ -87,6 +97,8 @@ namespace BorununYolu.LLM
             OdemeBildirilmedi = false;
             KavgaBildirilmedi = false;
             OyuncuMesajSayisi = 0;
+            KavgaSayisi = 0;
+            GecisYolu = GecisYolu.Gecilmedi;
             IsOver = false;
             _history.Clear();
             _history.Add(new ChatMessage("system", _persona.BuildSystemPrompt(Akce, Ofke, BedelOdendi)));
@@ -116,6 +128,7 @@ namespace BorununYolu.LLM
 
             Ofke = Math.Max(0, Ofke - Math.Max(0, ofkeDususu));
             KavgaBildirilmedi = true;
+            KavgaSayisi++;
         }
 
         public Task<DialogueTurnResult> SayAsync(string text, CancellationToken ct = default)
@@ -198,6 +211,7 @@ namespace BorununYolu.LLM
                 if (odemeYolu || iknaYolu)
                 {
                     ev = DialogueEvent.DoorOpened;
+                    GecisYolu = odemeYolu ? GecisYolu.Odeme : GecisYolu.Ikna;
                     IsOver = true;
                 }
                 else
