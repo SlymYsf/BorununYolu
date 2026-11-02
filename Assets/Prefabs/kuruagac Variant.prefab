@@ -30,7 +30,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5633415638163144151, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Center.y
-      value: 0
+      value: -0.4
       objectReference: {fileID: 0}
     - target: {fileID: 5633415638163144151, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Extents.x
@@ -38,7 +38,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5633415638163144151, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Extents.y
-      value: 0.9
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5633415638163144151, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Extents.z
@@ -54,11 +54,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5873639268374030098, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 4.4
+      value: -5.84
       objectReference: {fileID: 0}
     - target: {fileID: 5873639268374030098, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -3.29
+      value: -2.73
       objectReference: {fileID: 0}
     - target: {fileID: 5873639268374030098, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_LocalPosition.z
@@ -102,7 +102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7519872731880906438, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Size.y
-      value: 1.8
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7519872731880906438, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Offset.x
@@ -110,7 +110,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7519872731880906438, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_Offset.y
-      value: 0
+      value: -0.4
       objectReference: {fileID: 0}
     - target: {fileID: 7519872731880906438, guid: 042e220a2344f1b4ca58929e8338607d, type: 3}
       propertyPath: m_SpriteTilingProperty.pivot.y

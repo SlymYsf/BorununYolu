@@ -19,7 +19,7 @@ public class AybarsHareket : MonoBehaviour
         hareket.x = Input.GetAxisRaw("Horizontal");
         hareket.y = Input.GetAxisRaw("Vertical");
 
-        // Yön Dönme (Senin ayarladığın o ters yön ve standart 1 boyutuyla)
+        
         if (hareket.x > 0)
         {
             transform.localScale = new Vector3(-1, 1, 1);
@@ -29,14 +29,14 @@ public class AybarsHareket : MonoBehaviour
             transform.localScale = new Vector3(1, 1, 1);
         }
 
-        // Düzeltilmiş doğru kutu isimleriyle Animasyon Oynatma
+        
         if (hareket.x != 0 || hareket.y != 0)
         {
-            AnimasyonOynat("Run"); // Animator'daki koşma kutusunun gerçek adı
+            AnimasyonOynat("Run"); 
         }
         else
         {
-            AnimasyonOynat("Idle"); // Animator'daki durma kutusunun gerçek adı
+            AnimasyonOynat("Idle"); 
         }
     }
 

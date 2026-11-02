@@ -60,7 +60,7 @@ public class WolfCompanion : MonoBehaviour
             case State.TakipEdiyor:
                 float mesafe = Vector3.Distance(transform.position, aybars.position);
 
-                if (mesafe > 8f)
+                if (mesafe > 5f)
                 {
                     agent.Warp(aybars.position); // Börü gelmede sorun yaşarsa ışınlar
                 }
