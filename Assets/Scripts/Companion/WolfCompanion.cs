@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;//zamanlayıcı
 
 public class WolfCompanion : MonoBehaviour
 {
@@ -7,7 +8,8 @@ public class WolfCompanion : MonoBehaviour
     public enum State
     {
         TakipEdiyor,
-        GoreveGidiyor
+        GoreveGidiyor,
+        IpiKesiyor
     }
 
     public State currentState = State.TakipEdiyor; // Başlangıçta Aybarsı takip etsin
@@ -60,7 +62,7 @@ public class WolfCompanion : MonoBehaviour
             case State.TakipEdiyor:
                 float mesafe = Vector3.Distance(transform.position, aybars.position);
 
-                if (mesafe > 5f)
+                if (mesafe > 6f)
                 {
                     agent.Warp(aybars.position); // Börü gelmede sorun yaşarsa ışınlar
                 }
@@ -77,6 +79,10 @@ public class WolfCompanion : MonoBehaviour
 
             case State.GoreveGidiyor:
                 agent.SetDestination(gorevNesnesi.position);
+                break;
+
+            case State.IpiKesiyor:
+                // ipi keserken Börü olduğu yerde durur hareket etmez
                 break;
         }
 
@@ -146,15 +152,35 @@ public class WolfCompanion : MonoBehaviour
                 {
                     Debug.Log($"Sensör ipe ulaştı! Açı: {aci}, Mesafe: {hit.distance}. Kapı açılıyor...");
 
-                    if (kapaliKapi != null)
-                    {
-                        kapaliKapi.SetActive(false);
-                    }
+                    // direk kapıyı açmak yerine 2 saniyelik uğraşıyormuşçasına bekle
+                    StartCoroutine(IpKesmeZamanlayicisi(hit.collider.gameObject));
 
-                    currentState = State.TakipEdiyor; // Görev bitti Aybarsa dön
+                    currentState = State.IpiKesiyor;
                     return;
                 }
             }
         }
+    }
+
+    private IEnumerator IpKesmeZamanlayicisi(GameObject kesilenIp)
+    {
+        agent.ResetPath(); // Börü ipin önünde durdur
+
+        yield return new WaitForSeconds(2f); // 2 saniye bekler
+
+        // 2 saniye sonra kütük yok olur
+        if (kapaliKapi != null)
+        {
+            kapaliKapi.SetActive(false);
+        }
+
+        // Sensörün çarptığı ip de yok olur
+        if (kesilenIp != null)
+        {
+            kesilenIp.SetActive(false);
+        }
+
+        Debug.Log("İp koptu, görev tamamlandı!");
+        currentState = State.TakipEdiyor; // Görev bitti, Aybars'ı takip etmeye geri dön
     }
 }
