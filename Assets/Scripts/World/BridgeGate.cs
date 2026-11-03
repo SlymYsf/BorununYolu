@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Events;
 
 namespace BorununYolu.World
@@ -11,6 +12,7 @@ namespace BorununYolu.World
     public class BridgeGate : MonoBehaviour
     {
         [SerializeField] private Collider2D blocker;
+        [SerializeField] private NavMeshObstacle navObstacle;
         [SerializeField] private SpriteRenderer gateRenderer;
         [SerializeField] private Sprite openSprite;   // Varsa açık kapı görseli; yoksa kapı solar
         [SerializeField] private float fadeDuration = 0.6f;
@@ -26,6 +28,9 @@ namespace BorununYolu.World
 
             if (blocker != null)
                 blocker.enabled = false;
+
+            if (navObstacle != null)
+                navObstacle.enabled = false;
 
             if (gateRenderer != null)
             {
