@@ -7,7 +7,7 @@ namespace BorununYolu.Ending
 {
     /// <summary>
     /// Oyunun sonu: ekran kararır, son yazısı ve "Yeniden Oyna / Çık" düğmeleri gelir.
-    /// Show() Inspector'dan DedeKorkutNpc.Finished olayına bağlanır.
+    /// DedeKorkutNpc final sahnesinin sonunda ShowImmediately() ile açar; Show() yavaşça belirir.
     /// </summary>
     public class EndingScreen : MonoBehaviour
     {
@@ -34,6 +34,14 @@ namespace BorununYolu.Ending
             if (IsShown) return;
             IsShown = true;
             StartCoroutine(FadeIn());
+        }
+
+        /// <summary>Beklemeden tam görünür yapar (üstünde açılan bir karartının altında hazır durması için).</summary>
+        public void ShowImmediately()
+        {
+            StopAllCoroutines();
+            IsShown = true;
+            SetVisible(1f);
         }
 
         private IEnumerator FadeIn()
