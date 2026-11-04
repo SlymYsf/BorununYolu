@@ -19,7 +19,8 @@ namespace BorununYolu.NPC
         [SerializeField] private NpcPersona persona;
         [SerializeField] private DialoguePanel dialoguePanel;
         [SerializeField] private GameObject talkPrompt; // "Etkileşime gir (E)" yazısı (isteğe bağlı)
-        [SerializeField] private int baslangicAkcesi = 12;
+        [Tooltip("Sadece GameManager yokken (sahneyi doğrudan test ederken) kesedeki akçe. Oyunda akçe sandıklardan toplanır.")]
+        [SerializeField] private int testAkcesi = 0;
 
         [Header("Ollama")]
         [SerializeField] private string baseUrl = "http://localhost:11434";
@@ -36,14 +37,11 @@ namespace BorununYolu.NPC
         public UnityEvent ConversationStarted;
         public UnityEvent ConversationEnded;
 
+        private OllamaClient _client;
         private NpcDialogue _dialogue;
         private IModelWarmup _warmup;
         private bool _warmupStarted;
         private bool _playerInRange;
-
-        /// <summary>Köprü hangi yolla geçildi (Dede Korkut okur).</summary>
-        public GecisYolu GecisYolu => _dialogue?.GecisYolu ?? GecisYolu.Gecilmedi;
-        public int KavgaSayisi => _dialogue?.KavgaSayisi ?? 0;
 
         private void Awake()
         {
@@ -56,9 +54,8 @@ namespace BorununYolu.NPC
 
             GetComponent<Collider2D>().isTrigger = true;
 
-            var client = new OllamaClient(baseUrl, model, timeoutSeconds);
-            _warmup = client;
-            _dialogue = new NpcDialogue(client, persona, baslangicAkcesi);
+            _client = new OllamaClient(baseUrl, model, timeoutSeconds);
+            _warmup = _client;
 
             SetPromptVisible(false);
         }
@@ -75,6 +72,12 @@ namespace BorununYolu.NPC
 
         private void Start()
         {
+            // Kese Start'ta seçilir: aynı sahnedeki GameManager'ın Awake'i bitmiş olsun.
+            IAkceKesesi kese = GameManager.Instance != null
+                ? new GameManagerKesesi(GameManager.Instance)
+                : new SabitKese(testAkcesi);
+            _dialogue = new NpcDialogue(_client, persona, kese);
+
             if (openOnStart) StartConversation();
         }
 

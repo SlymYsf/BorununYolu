@@ -20,6 +20,7 @@ namespace BorununYolu.LLM
         [SerializeField] private int baslangicAkcesi = 12;
 
         private NpcDialogue _dialogue;
+        private SabitKese _kese;
         private readonly StringBuilder _log = new StringBuilder();
         private string _input = string.Empty;
         private float _waitStart;
@@ -35,13 +36,15 @@ namespace BorununYolu.LLM
             }
 
             ILLMClient client = new OllamaClient(baseUrl, model, timeoutSeconds);
-            _dialogue = new NpcDialogue(client, persona, baslangicAkcesi);
+            _kese = new SabitKese(baslangicAkcesi);
+            _dialogue = new NpcDialogue(client, persona, _kese);
             ResetConversation();
         }
 
         private void ResetConversation()
         {
-            _dialogue.Reset(baslangicAkcesi);
+            _kese.Ayarla(baslangicAkcesi);
+            _dialogue.Reset();
             _log.Clear();
             _log.AppendLine($"Model: {model}  |  Bedel: {persona.GecisBedeli} akçe");
         }

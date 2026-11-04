@@ -14,14 +14,6 @@ namespace BorununYolu.LLM
         FightStarted
     }
 
-    /// <summary>Köprünün hangi yolla geçildiği (Dede Korkut'un kapanış sözü buna göre değişir).</summary>
-    public enum GecisYolu
-    {
-        Gecilmedi,
-        Odeme,
-        Ikna
-    }
-
     public sealed class DialogueTurnResult
     {
         public bool Success { get; }
@@ -64,16 +56,15 @@ namespace BorununYolu.LLM
 
         private readonly ILLMClient _client;
         private readonly NpcPersona _persona;
+        private readonly IAkceKesesi _kese;
         private readonly List<ChatMessage> _history = new List<ChatMessage>();
 
-        public int Akce { get; private set; }
+        public int Akce => _kese.Akce;
         public int Ofke { get; private set; }
         public bool BedelOdendi { get; private set; }
         public bool OdemeBildirilmedi { get; private set; }
         public bool KavgaBildirilmedi { get; private set; }
         public int OyuncuMesajSayisi { get; private set; }
-        public int KavgaSayisi { get; private set; }
-        public GecisYolu GecisYolu { get; private set; }
         public bool IsBusy { get; private set; }
         public bool IsOver { get; private set; }
 
@@ -82,23 +73,22 @@ namespace BorununYolu.LLM
         private string OdemeMesaji => $"(Geçiş bedeli olan {_persona.GecisBedeli} akçeyi sana veriyorum.)"; // System prompt'taki örnekle aynı
         private const string KavgaMesaji = "(Az önce kavga ettik, sen beni köprü başına geri ittin. Yeniden konuşmaya geldim.)";
 
-        public NpcDialogue(ILLMClient client, NpcPersona persona, int baslangicAkcesi)
+        public NpcDialogue(ILLMClient client, NpcPersona persona, IAkceKesesi kese)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _persona = persona ?? throw new ArgumentNullException(nameof(persona));
-            Reset(baslangicAkcesi);
+            _kese = kese ?? throw new ArgumentNullException(nameof(kese));
+            Reset();
         }
 
-        public void Reset(int akce)
+        /// <summary>Konuşmayı baştan başlatır. Kese konuşmaya ait değildir, sıfırlanmaz.</summary>
+        public void Reset()
         {
-            Akce = akce;
             Ofke = _persona.BaslangicOfkesi;
             BedelOdendi = false;
             OdemeBildirilmedi = false;
             KavgaBildirilmedi = false;
             OyuncuMesajSayisi = 0;
-            KavgaSayisi = 0;
-            GecisYolu = GecisYolu.Gecilmedi;
             IsOver = false;
             _history.Clear();
             _history.Add(new ChatMessage("system", _persona.BuildSystemPrompt(Akce, Ofke, BedelOdendi)));
@@ -110,9 +100,8 @@ namespace BorununYolu.LLM
         /// </summary>
         public bool Pay()
         {
-            if (!CanPay) return false;
+            if (!CanPay || !_kese.Harca(_persona.GecisBedeli)) return false;
 
-            Akce -= _persona.GecisBedeli;
             BedelOdendi = true;
             OdemeBildirilmedi = true;
             return true;
@@ -128,7 +117,6 @@ namespace BorununYolu.LLM
 
             Ofke = Math.Max(0, Ofke - Math.Max(0, ofkeDususu));
             KavgaBildirilmedi = true;
-            KavgaSayisi++;
         }
 
         public Task<DialogueTurnResult> SayAsync(string text, CancellationToken ct = default)
@@ -211,7 +199,6 @@ namespace BorununYolu.LLM
                 if (odemeYolu || iknaYolu)
                 {
                     ev = DialogueEvent.DoorOpened;
-                    GecisYolu = odemeYolu ? GecisYolu.Odeme : GecisYolu.Ikna;
                     IsOver = true;
                 }
                 else
