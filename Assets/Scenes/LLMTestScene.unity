@@ -1029,7 +1029,7 @@ MonoBehaviour:
   persona: {fileID: 11400000, guid: bff34573439ae4f4f80ca32509eada22, type: 2}
   dialoguePanel: {fileID: 1980646890}
   talkPrompt: {fileID: 303044121}
-  baslangicAkcesi: 12
+  testAkcesi: 0
   baseUrl: http://localhost:11434
   model: qwen3.5:4b
   timeoutSeconds: 30
@@ -1038,10 +1038,10 @@ MonoBehaviour:
   ConversationStarted:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1045565900}
-        m_TargetAssemblyTypeName: AybarsHareket, Assembly-CSharp
-        m_MethodName: set_enabled
-        m_Mode: 6
+      - m_Target: {fileID: 1694115222}
+        m_TargetAssemblyTypeName: BorununYolu.World.PlayerLock, Assembly-CSharp
+        m_MethodName: Lock
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -1053,17 +1053,17 @@ MonoBehaviour:
   ConversationEnded:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1045565900}
-        m_TargetAssemblyTypeName: AybarsHareket, Assembly-CSharp
-        m_MethodName: set_enabled
-        m_Mode: 6
+      - m_Target: {fileID: 1694115222}
+        m_TargetAssemblyTypeName: BorununYolu.World.PlayerLock, Assembly-CSharp
+        m_MethodName: Unlock
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 1
+          m_BoolArgument: 0
         m_CallState: 2
 --- !u!61 &234613143
 BoxCollider2D:
@@ -2989,7 +2989,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8881287457049201066, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
   m_PrefabInstance: {fileID: 1694115218}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1694115221}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb9536b7cb5a1334bad38db7f2b327d8, type: 3}
@@ -3231,7 +3231,19 @@ MonoBehaviour:
   holdDuration: 0.8
   Started:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1694115222}
+        m_TargetAssemblyTypeName: BorununYolu.World.PlayerLock, Assembly-CSharp
+        m_MethodName: Lock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   BlackedOut:
     m_PersistentCalls:
       m_Calls:
@@ -3261,7 +3273,19 @@ MonoBehaviour:
         m_CallState: 2
   Finished:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1694115222}
+        m_TargetAssemblyTypeName: BorununYolu.World.PlayerLock, Assembly-CSharp
+        m_MethodName: Unlock
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1274832384
 Transform:
   m_ObjectHideFlags: 0
@@ -4572,8 +4596,42 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1103913749383106828, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1694115222}
   m_SourcePrefab: {fileID: 100100000, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
+--- !u!95 &1694115219 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 8275025308174409099, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
+  m_PrefabInstance: {fileID: 1694115218}
+  m_PrefabAsset: {fileID: 0}
+--- !u!50 &1694115220 stripped
+Rigidbody2D:
+  m_CorrespondingSourceObject: {fileID: 848434438675654635, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
+  m_PrefabInstance: {fileID: 1694115218}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1694115221 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1103913749383106828, guid: 1ba0a3783213c36459eea9f34dcfc6a3, type: 3}
+  m_PrefabInstance: {fileID: 1694115218}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1694115222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694115221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ef974b6097b2d349a69522f2642fb7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BorununYolu.World.PlayerLock
+  movement: {fileID: 1045565900}
+  body: {fileID: 1694115220}
+  animator: {fileID: 1694115219}
+  idleState: Idle
 --- !u!1 &1714713147
 GameObject:
   m_ObjectHideFlags: 0
