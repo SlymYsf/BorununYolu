@@ -52,7 +52,7 @@ namespace BorununYolu.LLM
     public sealed class NpcDialogue
     {
         private const int OfkeMaxDusus = 2;
-        private const int OfkeMaxArtis = 4;
+        private const int OfkeMaxArtis = 2;
 
         private readonly ILLMClient _client;
         private readonly NpcPersona _persona;
@@ -186,7 +186,9 @@ namespace BorununYolu.LLM
             DialogueEvent ev = DialogueEvent.None;
             bool doorBlocked = false;
 
-            if (npc.KavgaBaslat || Ofke >= _persona.KavgaOfkesi)
+            // Model kavga isteyebilir ama öfke yeterince yüksek değilse (ör. güreş teklifi, sitem) kurallar engeller.
+            bool modelKavgasi = npc.KavgaBaslat && Ofke >= _persona.ModelKavgasiIcinMinOfke;
+            if (modelKavgasi || Ofke >= _persona.KavgaOfkesi)
             {
                 ev = DialogueEvent.FightStarted;
             }

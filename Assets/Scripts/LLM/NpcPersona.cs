@@ -16,6 +16,8 @@ namespace BorununYolu.LLM
         [SerializeField, Range(0, 10)] private int baslangicOfkesi = 3;
         [SerializeField, Range(0, 10)] private int kapiIcinMaxOfke = 4;
         [SerializeField, Range(0, 10)] private int kavgaOfkesi = 8;
+        [Tooltip("Model kavga_baslat dese bile öfke bunun altındaysa kavga çıkmaz.")]
+        [SerializeField, Range(0, 10)] private int modelKavgasiIcinMinOfke = 6;
         [SerializeField] private int iknaIcinMinMesaj = 3;
 
         public string DisplayName => displayName;
@@ -24,6 +26,7 @@ namespace BorununYolu.LLM
         public int BaslangicOfkesi => baslangicOfkesi;
         public int KapiIcinMaxOfke => kapiIcinMaxOfke;
         public int KavgaOfkesi => kavgaOfkesi;
+        public int ModelKavgasiIcinMinOfke => modelKavgasiIcinMinOfke;
         public int IknaIcinMinMesaj => iknaIcinMinMesaj;
 
                public string BuildSystemPrompt(int kesedekiAkce, int mevcutOfke, bool bedelOdendi)
