@@ -18,22 +18,21 @@ Oyuncuya eşlik eden Börü, Unity NavMesh tabanlı dinamik bir pathfinding algo
 ```mermaid
 stateDiagram-v2
 [*] --> TakipEdiyor
-TakipEdiyor --> TakipEdiyor : Aybars 2m ile 6m arasi
-TakipEdiyor --> HizliTakip : Aybars 6m uzeri
-HizliTakip --> TakipEdiyor : Aybarsa yaklasildi
-TakipEdiyor --> GoreveGidiyor : Oyuncu E tusuna basar
-state GoreveGidiyor {
-[*] --> HedefeKos
-HedefeKos --> GorusAcisiKontrolu : Raycast Sensorleri Aktif
-GorusAcisiKontrolu --> HedefeKos : Engel Yok
+TakipEdiyor --> TakipEdiyor : Aybars 2m ile 6m arası
+TakipEdiyor --> HızlıTakip : Aybars 6m üzeri
+HızlıTakip --> TakipEdiyor : Aybars'a yaklaşıldı
+TakipEdiyor --> GöreveGidiyor : Oyuncu E tuşuna basar
+state GöreveGidiyor {
+[*] --> HedefeKoş
+HedefeKoş --> GörüşAçısıKontrolü : Raycast Sensörleri Aktif
+GörüşAçısıKontrolü --> HedefeKoş : Engel Yok
 }
-GoreveGidiyor --> IpiKesiyor : Raycast Ipi Algilar
-state IpiKesiyor {
+GöreveGidiyor --> İpiKesiyor : Raycast İpi Algılar
+state İpiKesiyor {
 [*] --> AnimasyonBekleme
-AnimasyonBekleme --> Etkilesim : Kapi ve Ip Yok Edilir
+AnimasyonBekleme --> Etkileşim : Kapı ve İp Yok Edilir
 }
-IpiKesiyor --> TakipEdiyor : Gorev Tamamlandi
-
+İpiKesiyor --> TakipEdiyor : Görev Tamamlandı
 ```
 
 ### 2.1 Börü Performans ve Test Sonuçları
