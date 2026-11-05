@@ -61,19 +61,23 @@ public class WolfCompanion : MonoBehaviour
         {
             case State.TakipEdiyor:
                 float mesafe = Vector3.Distance(transform.position, aybars.position);
+                float normalHiz = 4f;
+                float deparHizi = 6f;
 
                 if (mesafe > 6f)
                 {
-                    agent.Warp(aybars.position); // Börü gelmede sorun yaşarsa ışınlar
+                    agent.speed = deparHizi;
+                    agent.SetDestination(aybars.position);
                 }
-                // Normal takip etme
                 else if (mesafe > 2f)
                 {
+                    agent.speed = normalHiz;
                     agent.SetDestination(aybars.position);
                 }
                 else
                 {
                     agent.ResetPath();
+                    agent.speed = normalHiz;
                 }
                 break;
 
