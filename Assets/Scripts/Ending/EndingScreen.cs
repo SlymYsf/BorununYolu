@@ -66,14 +66,7 @@ namespace BorununYolu.Ending
 
         private void Restart()
         {
-            Scene current = SceneManager.GetActiveScene();
-            if (current.buildIndex < 0)
-            {
-                Debug.LogError($"'{current.name}' sahnesi Build Settings'te yok; yeniden yüklenemiyor. " +
-                               "File > Build Profiles > Scene List'e ekleyin.");
-                return;
-            }
-            SceneManager.LoadScene(current.buildIndex);
+            SceneManager.LoadScene("01_ObaCikisi");
         }
 
         private static void Quit()
